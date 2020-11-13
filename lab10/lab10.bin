@@ -1,8 +1,19 @@
 ; This is the file you will use for the lab assignment
-; Make sure to comment your code properly and don't exceed 
+; Make sure to comment your code properly and don't exceed
 ; the line limitation for this assignment.  Good luck!
 
-0011 0001 0000 0000 ; x3100 - starting address of the program
+0011 0001 0000 0000  ; x3100 - starting address of the program
 
 ; The program description and code starts here
 
+1110 011 000110001   ; R3 <- PC + x31         put value x3132 in register R3(pointer) by adding x31 and PC
+0101 100 100 1 00000 ; R4 <- R4 AND x0        clear R4(counter) by ANDing it with x0
+0001 100 100 1 01010 ; R4 <- R4 + xA          set R4(counter) to xA by adding xA to R4
+0101 101 101 1 00000 ; R5 <- R5 AND x0        clear R5(sum) by ANDing it with x0
+0110 110 011 000000  ; R6 <- mem[R3+x0]       put memory with address R3 in R6
+0000 110 000000001   ; if nz, PC <- PC + x1   check if number is negative or zero; if true, PC sets to x3107
+0001 101 110 000 101 ; R5 <- R6 + R5          add R6 to R5(sum) if number was positive
+0001 011 011 1 00001 ; R3 <- R3 + x1          Increment pointer(R3) by 1
+0001 100 100 1 11111 ; R4 <- R4 + xFFFF       subtract x1 from R4 to decrease counter by 1
+0000 001 111111010   ; if p, PC <- PC + xFFFA check if number is positive; if true, PC sets to x3104
+1111 0000 0010 0101  ; halt
