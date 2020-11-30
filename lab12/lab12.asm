@@ -3,6 +3,75 @@
 ; 8 bits (the high 8 bits, for your convenience) marking pixels in the
 ; line for that character.
 
+; This program creates a render of a single, 8x16-pixel, ASCII character.
+; m[x5000] would be the character used to fill in each pixel around the big character
+; m[x5001] would be the character used to fill in each pixel of the big character
+; m[x5002] would be the character you want to create a render of
+; This program would firstly keep track of each row, then within each row, you would print certain 
+; values based on each column.  
+
+; R0 - holds data to print
+; R1 - used as row counter
+; R2 - pointer to the offset value plus FONT_DATA
+; R3 - pointer to the offset value
+; R4 - used as column counter
+; R5 - pointer to data stored in R2
+
+	.ORIG x3000 	  ; starting address is x3000
+	LEA R2, FONT_DATA ; loaded FONT_DATA address into R2
+	LDI R3, LETTERTWO ; loaded m[m[LETTERTWO]] into R3
+					  ; stores value of character into R3
+	ADD R3, R3, R3
+	ADD R3, R3, R3
+	ADD R3, R3, R3
+	ADD R3, R3, R3    ; multiply R3 by #16 to achieve offset value for FONT_DATA
+					  
+	ADD R2, R2, R3    ; starting offset address of FONT_DATA for specific letter
+	
+	AND R1, R1, #0
+	ADD R1, R1, #16   ; sets row counter to 16
+	
+NEXT_ROW
+	LDR R5, R2, #0    ; load m[R2] into R5 
+	AND R4, R4, #0    
+	ADD R4, R4, #8    ; sets column counter to 8 for each row
+	ADD R1, R1, #0    
+	BRz DONE		  ; branch to done when all rows are printed
+	
+NEXT_COLUMN
+	ADD R4, R4, #0 
+	BRz DONE_ROW      ; branches to next row if column counter reaches 0
+	
+	ADD R5, R5, #0
+	BRzp #5           ; checks if R5 is zero or positive
+					  ; if yes, branches to part where LETTERZERO is printed
+	LDI R0, LETTERONE
+	OUT 			  ; if negative number, prints m[m[LETTERONE]]
+	ADD R4, R4, #-1   ; subtract column counter by 1
+	ADD R5, R5, R5    ; shifts left by 1
+	BRnzp NEXT_COLUMN ; branches back to check next column
+	LDI R0, LETTERZERO
+	OUT				  ; if positive or zero, prints m[m[LETTERZERO]]
+	ADD R4, R4, #-1   ; subtract column counter by 1
+	ADD R5, R5, R5    ; shifts left by 1
+	BRnzp NEXT_COLUMN ; branches back to check next column
+	
+DONE_ROW
+	LD R0, ASCII_NL   
+	OUT				  ; prints a next line
+	ADD R1, R1, #-1   ; subtract row counter by 1
+	ADD R2, R2, #1    ; stores next address in R2
+	BRnzp NEXT_ROW    ; branches back to work on next row
+	
+DONE
+	HALT			  ; program stops
+	
+
+ASCII_NL .FILL xA		 ; character used for new line
+LETTERZERO .FILL x5000	 ; character used to fill in each pixel around the big character
+LETTERONE .FILL x5001    ; character used to fill in each pixel of the big character
+LETTERTWO .FILL x5002    ; character you want to create a render of
+
 FONT_DATA
 	.FILL	x0000
 	.FILL	x0000
@@ -4100,3 +4169,5 @@ FONT_DATA
 	.FILL	x0000
 	.FILL	x0000
 	.FILL	x0000
+		
+.END
